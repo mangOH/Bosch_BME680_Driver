@@ -342,22 +342,37 @@
 
 /** Type definitions */
 /*!
- * Generic communication function pointer
- * @param[in] dev_id: Place holder to store the id of the device structure
- *                    Can be used to store the index of the Chip select or
- *                    I2C address of the device.
+ * Read communication function pointer
  * @param[in] reg_addr:	Used to select the register the where data needs to
- *                      be read from or written to.
- * @param[in/out] reg_data: Data array to read/write
+ *                      be read from.
+ * @param[out] reg_data: Data array to read into.
  * @param[in] len: Length of the data array
+ * @param[in] context: User data that can be used to store the information
+ *                     necessary to complete the operation. The value comes from the context member
+ *                     of struct bme680_dev.
  */
-typedef int8_t (*bme680_com_fptr_t)(uint8_t dev_id, uint8_t reg_addr, uint8_t *data, uint16_t len);
+typedef int8_t (*bme680_read_fptr_t)(uint8_t reg_addr, uint8_t *data, uint16_t len, void *context);
+
+/*!
+ * Write communication function pointer
+ * @param[in] reg_addr:	Used to select the register the where data needs to
+ *                      be written to.
+ * @param[out] reg_data: Data array to write into the bme680.
+ * @param[in] len: Length of the data array
+ * @param[in] context: User data that can be used to store the information
+ *                     necessary to complete the operation. The value comes from the context member
+ *                     of struct bme680_dev.
+ */
+typedef int8_t (*bme680_write_fptr_t)(uint8_t reg_addr, const uint8_t *data, uint16_t len, void *context);
 
 /*!
  * Delay function pointer
  * @param[in] period: Time period in milliseconds
+ * @param[in] context: User data that can be used to store the information
+ *                     necessary to complete the operation. The value comes from the context member
+ *                     of struct bme680_dev.
  */
-typedef void (*bme680_delay_fptr_t)(uint32_t period);
+typedef void (*bme680_delay_fptr_t)(uint32_t period, void *context);
 
 /*!
  * @brief Interface selection Enumerations
@@ -506,10 +521,10 @@ struct	bme680_gas_sett {
  * @brief BME680 device structure
  */
 struct	bme680_dev {
+	/*! Context pointer provided to user supplied functions */
+	void *context;
 	/*! Chip Id */
 	uint8_t chip_id;
-	/*! Device Id */
-	uint8_t dev_id;
 	/*! SPI/I2C interface */
 	enum bme680_intf intf;
 	/*! Memory page used */
@@ -529,9 +544,9 @@ struct	bme680_dev {
 	/*! Store the info messages */
 	uint8_t info_msg;
 	/*! Bus read function pointer */
-	bme680_com_fptr_t read;
+	bme680_read_fptr_t read;
 	/*! Bus write function pointer */
-	bme680_com_fptr_t write;
+	bme680_write_fptr_t write;
 	/*! delay function pointer */
 	bme680_delay_fptr_t delay_ms;
 	/*! Communication function result */

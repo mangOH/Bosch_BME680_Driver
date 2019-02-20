@@ -325,7 +325,7 @@ int8_t bme680_get_regs(uint8_t reg_addr, uint8_t *reg_data, uint16_t len, struct
 			if (rslt == BME680_OK)
 				reg_addr = reg_addr | BME680_SPI_RD_MSK;
 		}
-		dev->com_rslt = dev->read(dev->dev_id, reg_addr, reg_data, len);
+		dev->com_rslt = dev->read(reg_addr, reg_data, len, dev->context);
 		if (dev->com_rslt != 0)
 			rslt = BME680_E_COM_FAIL;
 	}
@@ -361,7 +361,7 @@ int8_t bme680_set_regs(const uint8_t *reg_addr, const uint8_t *reg_data, uint8_t
 			}
 			/* Write the interleaved array */
 			if (rslt == BME680_OK) {
-				dev->com_rslt = dev->write(dev->dev_id, tmp_buff[0], &tmp_buff[1], (2 * len) - 1);
+				dev->com_rslt = dev->write(tmp_buff[0], &tmp_buff[1], (2 * len) - 1, dev->context);
 				if (dev->com_rslt != 0)
 					rslt = BME680_E_COM_FAIL;
 			}
@@ -393,7 +393,7 @@ int8_t bme680_soft_reset(struct bme680_dev *dev)
 		if (rslt == BME680_OK) {
 			rslt = bme680_set_regs(&reg_addr, &soft_rst_cmd, 1, dev);
 			/* Wait for 5ms */
-			dev->delay_ms(BME680_RESET_PERIOD);
+			dev->delay_ms(BME680_RESET_PERIOD, dev->context);
 
 			if (rslt == BME680_OK) {
 				/* After reset get the memory page */
@@ -606,7 +606,7 @@ int8_t bme680_set_sensor_mode(struct bme680_dev *dev)
 				if (pow_mode != BME680_SLEEP_MODE) {
 					tmp_pow_mode = tmp_pow_mode & (~BME680_MODE_MSK); /* Set to sleep */
 					rslt = bme680_set_regs(&reg_addr, &tmp_pow_mode, 1, dev);
-					dev->delay_ms(BME680_POLL_PERIOD_MS);
+					dev->delay_ms(BME680_POLL_PERIOD_MS, dev->context);
 				}
 			}
 		} while (pow_mode != BME680_SLEEP_MODE);
@@ -1248,7 +1248,7 @@ static int8_t read_field_data(struct bme680_field_data *data, struct bme680_dev 
 				break;
 			}
 			/* Delay to poll the data */
-			dev->delay_ms(BME680_POLL_PERIOD_MS);
+			dev->delay_ms(BME680_POLL_PERIOD_MS, dev->context);
 		}
 		tries--;
 	} while (tries);
@@ -1279,7 +1279,7 @@ static int8_t set_mem_page(uint8_t reg_addr, struct bme680_dev *dev)
 		if (mem_page != dev->mem_page) {
 			dev->mem_page = mem_page;
 
-			dev->com_rslt = dev->read(dev->dev_id, BME680_MEM_PAGE_ADDR | BME680_SPI_RD_MSK, &reg, 1);
+			dev->com_rslt = dev->read(BME680_MEM_PAGE_ADDR | BME680_SPI_RD_MSK, &reg, 1, dev->context);
 			if (dev->com_rslt != 0)
 				rslt = BME680_E_COM_FAIL;
 
@@ -1287,8 +1287,7 @@ static int8_t set_mem_page(uint8_t reg_addr, struct bme680_dev *dev)
 				reg = reg & (~BME680_MEM_PAGE_MSK);
 				reg = reg | (dev->mem_page & BME680_MEM_PAGE_MSK);
 
-				dev->com_rslt = dev->write(dev->dev_id, BME680_MEM_PAGE_ADDR & BME680_SPI_WR_MSK,
-					&reg, 1);
+				dev->com_rslt = dev->write(BME680_MEM_PAGE_ADDR & BME680_SPI_WR_MSK, &reg, 1, dev->context);
 				if (dev->com_rslt != 0)
 					rslt = BME680_E_COM_FAIL;
 			}
@@ -1309,7 +1308,7 @@ static int8_t get_mem_page(struct bme680_dev *dev)
 	/* Check for null pointer in the device structure*/
 	rslt = null_ptr_check(dev);
 	if (rslt == BME680_OK) {
-		dev->com_rslt = dev->read(dev->dev_id, BME680_MEM_PAGE_ADDR | BME680_SPI_RD_MSK, &reg, 1);
+		dev->com_rslt = dev->read(BME680_MEM_PAGE_ADDR | BME680_SPI_RD_MSK, &reg, 1, dev->context);
 		if (dev->com_rslt != 0)
 			rslt = BME680_E_COM_FAIL;
 		else
