@@ -374,6 +374,8 @@ typedef int8_t (*bme680_write_fptr_t)(uint8_t reg_addr, const uint8_t *data, uin
  */
 typedef void (*bme680_delay_fptr_t)(uint32_t period, void *context);
 
+typedef int8_t (*bme680_ambient_temperature_fptr_t)(void);
+
 /*!
  * @brief Interface selection Enumerations
  */
@@ -530,7 +532,7 @@ struct	bme680_dev {
 	/*! Memory page used */
 	uint8_t mem_page;
 	/*! Ambient temperature in Degree C */
-	int8_t amb_temp;
+    bme680_ambient_temperature_fptr_t read_ambient_temperature;
 	/*! Sensor calibration data */
 	struct bme680_calib_data calib;
 	/*! Sensor settings */

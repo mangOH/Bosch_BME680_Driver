@@ -1012,7 +1012,7 @@ static uint8_t calc_heater_res(uint16_t temp, const struct bme680_dev *dev)
 	if (temp > 400) /* Cap temperature */
 		temp = 400;
 
-	var1 = (((int32_t) dev->amb_temp * dev->calib.par_gh3) / 1000) * 256;
+	var1 = (((int32_t) dev->read_ambient_temperature() * dev->calib.par_gh3) / 1000) * 256;
 	var2 = (dev->calib.par_gh1 + 784) * (((((dev->calib.par_gh2 + 154009) * temp * 5) / 100) + 3276800) / 10);
 	var3 = var1 + (var2 / 2);
 	var4 = (var3 / (dev->calib.res_heat_range + 4));
@@ -1173,7 +1173,7 @@ static float calc_heater_res(uint16_t temp, const struct bme680_dev *dev)
 	var2 = ((((float)dev->calib.par_gh2 / (32768.0f)) * (0.0005f)) + 0.00235f);
 	var3 = ((float)dev->calib.par_gh3 / (1024.0f));
 	var4 = (var1 * (1.0f + (var2 * (float)temp)));
-	var5 = (var4 + (var3 * (float)dev->amb_temp));
+	var5 = (var4 + (var3 * (float)dev->read_ambient_temperature()));
 	res_heat = (uint8_t)(3.4f * ((var5 * (4 / (4 + (float)dev->calib.res_heat_range)) *
 		(1/(1 + ((float) dev->calib.res_heat_val * 0.002f)))) - 25));
 
